@@ -22,7 +22,7 @@ module Sqskiq
     Celluloid::Actor[:manager]   = @manager   = Manager.new(config[:empty_queue_throttle])
     Celluloid::Actor[:fetcher]   = @fetcher   = Fetcher.pool(:size => config[:num_fetchers], :args => credentials)
     Celluloid::Actor[:deleter]   = @deleter   = Deleter.pool(:size => config[:num_deleters], :args => credentials)
-    Celluloid::Actor[:processor] = @processor = Processor.pool(:size => config[:num_workers], :args => worker_class)
+    Celluloid::Actor[:processor] = @processor = Processor.pool(:size => config[:num_workers], :args => [worker_class, config[:on_exception]])
     Celluloid::Actor[:batcher]   = @batcher   = BatchProcessor.pool(:size => config[:num_batches])
 
     run!
@@ -84,7 +84,8 @@ module Sqskiq
       num_batches: num_batches,
       num_deleters: num_deleters,
       queue_name: worker_config[:queue_name],
-      empty_queue_throttle: worker_config[:empty_queue_throttle] || 0
+      empty_queue_throttle: worker_config[:empty_queue_throttle] || 0,
+      on_exception: worker_config[:on_exception]
     }
   end
 
